@@ -9,6 +9,7 @@ export default function App() {
   const [dice, setDice] = React.useState(allNewDice())
   const [tenzies, setTenzies] = React.useState(false)
   const [count, setCount] = React.useState(0);
+  const [rollHistory, setRollHistory] = React.useState([])
 
   React.useEffect(() => {
     const allHeld = dice.every(die => die.isHeld)
@@ -16,9 +17,15 @@ export default function App() {
     const allSameValue = dice.every(die => die.value === firstValue)
     if (allHeld && allSameValue) {
       setTenzies(true)
-
     }
   }, [dice])
+
+  React.useEffect(() => {
+    if (tenzies) {
+      setRollHistory(prevState => [...prevState, count]);
+         }    
+
+  }, [tenzies])
 
   function generateNewDie() {
     return {
@@ -46,9 +53,11 @@ export default function App() {
       setCount(prevCount => prevCount + 1)
       
     } else {
+      
       setTenzies(false)
-      setDice(allNewDice())
+      setDice(allNewDice())      
       setCount(0)
+      
     }
   }
 
@@ -70,13 +79,9 @@ export default function App() {
     />
   ))
 
-  function handleCount() {
-    setCount(prevState => prevState + 1)
-  }
+  const minRoll = rollHistory.length > 0 ? Math.min(...rollHistory) : 0;
+  
 
-  //Create a function which increase the count on every click
-  //attach counter to each Die
-  //increment count on click
 
   return (
     <main>
@@ -95,7 +100,8 @@ export default function App() {
       </button>
       
       {tenzies && `Congrats! You won! It took you ${count} rolls.`}
-      
+      {/* <h1>Roll history: {rollHistory.join(", ")}</h1> */}
+      {tenzies && <h1>Lowest roll: {minRoll}</h1>}
     </main>
 
   )
