@@ -5,11 +5,15 @@ import { nanoid } from "nanoid"
 import Confetti from "react-confetti"
 
 export default function App() {
-
   const [dice, setDice] = React.useState(allNewDice())
   const [tenzies, setTenzies] = React.useState(false)
   const [count, setCount] = React.useState(0);
-  const [rollHistory, setRollHistory] = React.useState([])
+  const [rollHistory, setRollHistory] = React.useState(() => {
+    const history = localStorage.getItem('rollHistory');
+    return history ? JSON.parse(history) : [];
+  });
+
+  const lowestScore = React.useMemo(() => Math.min(...rollHistory), [rollHistory]);
 
   React.useEffect(() => {
     const allHeld = dice.every(die => die.isHeld)
@@ -23,9 +27,12 @@ export default function App() {
   React.useEffect(() => {
     if (tenzies) {
       setRollHistory(prevState => [...prevState, count]);
-         }    
+    }    
+  }, [tenzies, count])
 
-  }, [tenzies])
+  React.useEffect(() => {
+    localStorage.setItem('rollHistory', JSON.stringify(rollHistory));
+  }, [rollHistory]);
 
   function generateNewDie() {
     return {
@@ -53,11 +60,9 @@ export default function App() {
       setCount(prevCount => prevCount + 1)
       
     } else {
-      
       setTenzies(false)
       setDice(allNewDice())      
       setCount(0)
-      
     }
   }
 
@@ -79,10 +84,6 @@ export default function App() {
     />
   ))
 
-  const minRoll = rollHistory.length > 0 ? Math.min(...rollHistory) : 0;
-  
-
-
   return (
     <main>
       {tenzies && <Confetti />}
@@ -97,13 +98,20 @@ export default function App() {
         onClick={rollDice}
       >
         {tenzies ? "New Game" : "Roll"}
-      </button>
+      </button>     
       
-      {tenzies && `Congrats! You won! It took you ${count} rolls.`}
-      {/* <h1>Roll history: {rollHistory.join(", ")}</h1> */}
-      {tenzies && <h1>Lowest roll: {minRoll}</h1>}
+      {tenzies && (
+        <>
+          <p>
+            Congrats, you won! It took you {count} rolls.
+            {lowestScore === count && " New best score!"}
+          </p>
+          <h2>Best score: {lowestScore}</h2>
+        </>
+      )}
     </main>
-
   )
 }
+
+
 
